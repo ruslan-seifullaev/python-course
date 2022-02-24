@@ -1,0 +1,8 @@
+#test commands for ipython
+
+#test primes
+import primes
+%timeit primes.primes(2000)
+
+import cy_primes
+%timeit cy_primes.primes(2000)
