@@ -2,6 +2,6 @@ The project is about using reinforcement learning techniques to find an optimal 
 
 1) Represent the overall model (dynamical system model, energy harvesting model, communication channel gain model, battery model) as a Markov decision process (MDP) with possible actions {0 - not transmit, 1 -transmit} and define transition probability matrix (N-dimensional).
 
-2) Realize an iterative algorithm (e.g., value-iteration, policy iteration, etc.) solving the Bellman equations to obtain an optimal policy.
+2) Realize an iterative algorithm (value-iteration) solving the Bellman equations to obtain an optimal policy.
 
 3) Try the obtained policy by simulating the closed-loop system. Plot the results.  
