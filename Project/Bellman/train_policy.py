@@ -3,16 +3,33 @@ import math as mt
 from .methods import *
 
 def value_iteration_algorithm(sys,discount_factor,balance_parameter,N_steps):
-    n_X = len(sys.X_ss)
-    n_B = len(sys.B_ss)
-    n_H = len(sys.H_ss)
-    n_T = len(sys.T_ss)
+    """
+    The value-iteration algorithm to solve the Bellman equation
     
-    V = np.zeros((n_X,n_X,n_B,n_H,n_T))
-    policy = np.zeros((n_X,n_X,n_B,n_H,n_T))
+    
+    Parameters
+    ----------
+    
+    sys: object of the class Model (the full state is: the dynamical system state X 
+         the battery level, harvesting energy, transmission energy)
+    discount_factor: the discount parameter in the algorithm
+    balance_parameter: the balance parameter between the output penalty and the energy cost
+    N_steps: number of steps in the algorithm
+
+    Returns
+    -------
+    policy: numpy ndarray with (sub)optimal policy
+    """
+    n_X = len(sys.X_ss) #number of elements in the system state-space
+    n_B = len(sys.B_ss) #number of elements in the state-space of the battery model
+    n_H = len(sys.H_ss) #number of elements in the state-space of the harvesting model
+    n_T = len(sys.T_ss) #number of elements in the state-space of the transmission model
+    
+    V = np.zeros((n_X,n_X,n_B,n_H,n_T)) #initialize the value function
+    policy = np.zeros((n_X,n_X,n_B,n_H,n_T)) #initialize the policy
     
     for N in range(N_steps):
-        V_old = np.copy(V)
+        V_old = np.copy(V) #copy the previous value of V
         
         #go through all elements of V
         #system state
@@ -40,18 +57,47 @@ def value_iteration_algorithm(sys,discount_factor,balance_parameter,N_steps):
                         #finally, go through battery values
                         for i_B in range(n_B):
                             
-                            min_value, action = minimum_value(sys,i_T,discount_factor,balance_parameter,
+                            #find the minimum value of V and the corresponding action with given state
+                            min_value, action = minimum_value(sys,i_B,i_T,discount_factor,balance_parameter,
                                                              nonzero_indices_T0,probability_values_T0,
                                                              nonzero_indices_T1,probability_values_T1,
-                                                             reward_0,nonzero_indices_H,probability_values_H,V_old,i_B)
+                                                             reward_0,nonzero_indices_H,probability_values_H,V_old)
                             V[i_x1,i_x2,i_B,i_H,i_T] = min_value
                             
-                            if N == N_steps - 1:
+                            if N == N_steps - 1: #at the last step save the policy
                                 policy[i_x1,i_x2,i_B,i_H,i_T] = action
     return policy
                                 
-def minimum_value(sys,current_index_T,discount_factor,balance_parameter,
-                  indices_T0,values_T0,indices_T1,values_T1,reward_0,indices_H,values_H,V_old,current_index_B):             
+def minimum_value(sys,current_index_B,current_index_T,discount_factor,balance_parameter,
+                  indices_T0,values_T0,indices_T1,values_T1,reward_0,indices_H,values_H,V_old):             
+ 
+    """
+    An intermediate step in the value-iteration algorithm. Calculate the minimum expectation 
+    of the value function V with given current state
+        
+    Parameters
+    ----------
+    
+    sys: object of the class Model (the full state is: the dynamical system state X 
+         the battery level, harvesting energy, transmission energy)
+    current_index_B: the index of the current state of the battery
+    current_index_T: the index of the current state of transmission energy
+    discount_factor: the discount parameter in the algorithm
+    balance_parameter: the balance parameter between the output penalty and the energy cost
+    indices_T0: indices of nonzero elements of the transition matrix T0
+    values_T0: nonzero elements of the transition matrix T0
+    indices_T1: indices of nonzero elements of the transition matrix T1
+    values_T1: nonzero elements of the transition matrix T1
+    reward_0: basic part of the reward function
+    indices_H: indices of nonzero elements of the transition matrix describing harvesting energy
+    values_H: nonzero elements of the transition matrix describing harvesting energy
+    V_old: the previous value of V
+
+    Returns
+    -------
+    minimum value of V
+    corresponding action (0 or 1)
+    """
     V = [0,0] #initialize      
     for ind_T in range(len(sys.T_ss)):
         for ind_H in range(len(indices_H)):
@@ -100,4 +146,4 @@ def minimum_value(sys,current_index_T,discount_factor,balance_parameter,
         return V[0], 0
     else:
         return V[1], 1
-    	
+        
